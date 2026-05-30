@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=1920, initial-scale=1"/>
+<title>Bingo 75 — Puerta de Esperanza</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Bebas+Neue&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#001E5A;--gold:#E8B93A;--gold2:#c9962a;--bg:#000d2e;
+  --panel:rgba(0,20,70,0.55);--border:rgba(232,185,58,0.22);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+#app{
+  font-family:'Montserrat',sans-serif;background:var(--bg);color:#fff;
+  width:100vw;height:100vh;display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+#confetti-canvas{position:absolute;inset:0;pointer-events:none;z-index:50}
+
+/* ── HEADER ─────────────────────────────────────────── */
+.hdr{
+  background:linear-gradient(135deg,#001E5A,#00318a);
+  border-bottom:3px solid var(--gold);
+  padding:10px 24px;display:flex;align-items:center;gap:16px;
+  flex-shrink:0;height:72px;
+}
+.logo{width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#001E5A}
+.org h1{font-size:15px;font-weight:900;letter-spacing:2px;color:var(--gold);text-transform:uppercase}
+.org p{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.stats{display:flex;gap:10px;margin-left:auto;align-items:center}
+.stat{background:rgba(232,185,58,0.12);border:1px solid rgba(232,185,58,0.3);border-radius:10px;padding:4px 18px;text-align:center}
+.stat-n{font-size:22px;font-weight:900;color:var(--gold)}
+.stat-l{font-size:9px;color:rgba(255,255,255,0.55);text-transform:uppercase;letter-spacing:1px}
+.tmr{font-family:'Bebas Neue',sans-serif;font-size:26px;color:rgba(232,185,58,0.75);letter-spacing:3px;min-width:72px;text-align:right}
+
+/* ── MAIN BODY ───────────────────────────────────────── */
+.body{
+  display:grid;
+  grid-template-columns:220px 1fr 320px;
+  flex:1;overflow:hidden;
+}
+
+/* LEFT PANEL — últimas balotas */
+.lpanel{background:var(--panel);padding:14px 10px;overflow-y:auto;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.ptitle{font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:6px;font-weight:700}
+.rball{display:flex;align-items:center;gap:10px;padding:5px 10px;border-radius:10px;
+  background:rgba(232,185,58,0.05);border:1px solid rgba(232,185,58,0.15);margin-bottom:4px}
+.rl{font-size:14px;font-weight:900;color:var(--gold);width:14px;text-align:center}
+.rn{font-size:20px;font-weight:900}
+
+/* CENTER PANEL */
+.cpanel{
+  display:grid;
+  grid-template-rows:1fr auto;
+  padding:0;overflow:hidden;
+}
+.cpanel-top{
+  display:flex;align-items:center;justify-content:center;gap:32px;padding:14px 20px;
+}
+.ball-area{display:flex;flex-direction:column;align-items:center;gap:8px}
+@keyframes ballIn{from{transform:scale(0.2) translateY(-20px);opacity:0}to{transform:scale(1);opacity:1}}
+.ball{
+  width:210px;height:210px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff9e6,var(--gold) 40%,var(--gold2));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 60px rgba(232,185,58,0.55),0 0 120px rgba(232,185,58,0.18);
+  border:4px solid rgba(255,255,255,0.25);
+  animation:ballIn .5s cubic-bezier(0.34,1.56,0.64,1)
+}
+.bl{font-family:'Bebas Neue',sans-serif;font-size:56px;color:#001E5A;line-height:1}
+.bn{font-family:'Bebas Neue',sans-serif;font-size:96px;color:#001E5A;line-height:0.85}
+.idle{width:210px;height:210px;border-radius:50%;border:3px dashed rgba(232,185,58,0.3);
+  display:flex;align-items:center;justify-content:center;color:rgba(232,185,58,0.4);
+  font-size:11px;letter-spacing:1px;text-transform:uppercase;text-align:center;padding:28px}
+.blbl{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--gold);letter-spacing:6px;min-height:38px}
+
+/* Quick-entry area beside ball */
+.entry-area{display:flex;flex-direction:column;gap:10px;min-width:200px}
+.hint{font-size:11px;color:rgba(232,185,58,0.65);letter-spacing:1px;min-height:14px}
+.inp-row{display:flex;gap:8px;align-items:center}
+.ni{
+  width:88px;height:58px;border-radius:10px;
+  background:rgba(232,185,58,0.08);border:2px solid rgba(232,185,58,0.4);
+  color:#fff;font-size:28px;font-weight:900;text-align:center;
+  font-family:'Bebas Neue',sans-serif;letter-spacing:2px;outline:none
+}
+.ni:focus{border-color:var(--gold);background:rgba(232,185,58,0.15);box-shadow:0 0 18px rgba(232,185,58,0.35)}
+.ni::placeholder{color:rgba(232,185,58,0.3);font-size:14px;font-family:'Montserrat',sans-serif;font-weight:400}
+.breg{padding:14px 20px;background:var(--gold);color:#001E5A;border:none;border-radius:10px;
+  font-family:'Montserrat',sans-serif;font-weight:900;font-size:14px;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.breg:hover{background:#f0c740}
+.errmsg{font-size:11px;color:#ff6b6b;letter-spacing:1px;min-height:14px}
+
+/* Quick grid */
+.qgrid-wrap{padding:0 12px 6px;overflow:hidden}
+.qgrid{display:grid;grid-template-columns:repeat(15,1fr);gap:3px}
+.qb{padding:5px 2px;border-radius:6px;border:1px solid rgba(232,185,58,0.2);
+  background:rgba(232,185,58,0.04);color:rgba(255,255,255,0.75);
+  font-size:9px;font-weight:700;cursor:pointer;text-align:center;
+  font-family:'Montserrat',sans-serif;line-height:1.3}
+.qb:hover:not(:disabled){background:rgba(232,185,58,0.22);color:#fff}
+.qb:disabled{opacity:0.3;text-decoration:line-through;cursor:not-allowed}
+.qbl{font-size:7px;color:var(--gold);display:block}
+
+/* RIGHT PANEL — historial BINGO */
+.rpanel{background:var(--panel);padding:14px 12px;overflow-y:auto;border-left:1px solid var(--border)}
+.hcol{margin-bottom:10px}
+.hltr{font-size:12px;font-weight:900;color:var(--gold);letter-spacing:2px;margin-bottom:5px;
+  padding:2px 8px;background:rgba(232,185,58,0.1);border-radius:5px;display:inline-block}
+.hnums{display:flex;flex-wrap:wrap;gap:4px}
+.hnum{width:30px;height:30px;border-radius:50%;background:rgba(232,185,58,0.15);
+  border:1px solid rgba(232,185,58,0.4);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700}
+
+/* ── FOOTER ──────────────────────────────────────────── */
+.ftr{
+  background:rgba(0,10,40,0.9);border-top:2px solid rgba(232,185,58,0.25);
+  padding:9px 20px;display:flex;align-items:center;gap:10px;
+  flex-shrink:0;height:56px;
+}
+.btn{padding:9px 15px;border-radius:8px;border:none;cursor:pointer;
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px;
+  letter-spacing:1px;text-transform:uppercase}
+.bundo{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.8);border:1px solid rgba(255,255,255,0.18)}
+.bundo:hover{background:rgba(255,255,255,0.15)}
+.bdanger{background:rgba(220,50,50,0.15);color:#ff6b6b;border:1px solid rgba(220,50,50,0.35)}
+.bdanger:hover{background:rgba(220,50,50,0.25)}
+.bwin{background:linear-gradient(135deg,#c9962a,var(--gold));color:#001E5A;font-size:13px;padding:10px 18px;font-weight:900}
+.bwin:hover{filter:brightness(1.1)}
+.tgl-wrap{display:flex;align-items:center;gap:6px;margin-left:auto}
+.tgl-lbl{font-size:10px;color:rgba(255,255,255,0.55);letter-spacing:1px;text-transform:uppercase}
+.tgl{width:36px;height:20px;border-radius:10px;background:rgba(255,255,255,0.14);
+  border:1px solid rgba(255,255,255,0.18);cursor:pointer;position:relative}
+.tgl.on{background:var(--gold)}
+.tgl::after{content:'';width:16px;height:16px;border-radius:50%;background:#fff;
+  position:absolute;top:1px;left:1px;transition:.2s}
+.tgl.on::after{left:18px}
+
+/* ── MODALS ──────────────────────────────────────────── */
+.cmodal{position:absolute;inset:0;z-index:30;display:flex;align-items:center;
+  justify-content:center;background:rgba(0,10,40,0.88)}
+.cbox{background:#001E5A;border:2px solid var(--gold);border-radius:14px;padding:28px;
+  text-align:center;max-width:320px}
+.cbox p{margin-bottom:16px;font-size:14px;line-height:1.6}
+.cbtns{display:flex;gap:10px;justify-content:center}
+.bsec{background:rgba(232,185,58,0.12);color:var(--gold);border:1px solid rgba(232,185,58,0.4)}
+.bsec:hover{background:rgba(232,185,58,0.22)}
+
+/* ── WINNER OVERLAY ──────────────────────────────────── */
+.wov{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;background:rgba(0,15,60,0.94)}
+.wtxt{font-family:'Bebas Neue',sans-serif;font-size:clamp(80px,12vw,160px);
+  color:var(--gold);letter-spacing:10px;animation:pw 1s ease-in-out infinite alternate}
+@keyframes pw{from{transform:scale(1)}to{transform:scale(1.06)}}
+.wsub{font-size:clamp(22px,3.5vw,44px);color:#fff;margin-top:10px;letter-spacing:6px}
+
+/* ── PROJECTION OVERLAY ──────────────────────────────── */
+.pov{position:absolute;inset:0;z-index:25;background:var(--bg);display:flex;flex-direction:column}
+.phdr{background:linear-gradient(135deg,#001E5A,#00318a);border-bottom:3px solid var(--gold);
+  padding:10px 20px;display:flex;align-items:center;gap:14px;height:72px;flex-shrink:0}
+.pcenter{flex:1;display:flex;align-items:center;justify-content:center;gap:40px;padding:10px 20px;overflow:hidden}
+.pball{
+  width:clamp(220px,24vw,300px);height:clamp(220px,24vw,300px);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff9e6,var(--gold) 40%,var(--gold2));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 80px rgba(232,185,58,0.7);border:5px solid rgba(255,255,255,0.25);
+  animation:ballIn .5s cubic-bezier(0.34,1.56,0.64,1)
+}
+.pbl{font-family:'Bebas Neue',sans-serif;font-size:clamp(60px,8vw,90px);color:#001E5A;line-height:1}
+.pbn{font-family:'Bebas Neue',sans-serif;font-size:clamp(90px,13vw,150px);color:#001E5A;line-height:0.85}
+.phistftr{background:rgba(0,20,70,0.8);border-top:2px solid rgba(232,185,58,0.3);padding:10px 20px;flex-shrink:0}
+.pcols{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.pch{font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--gold);text-align:center;margin-bottom:5px;letter-spacing:2px}
+.pcnums{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.pcnum{width:32px;height:32px;border-radius:50%;background:rgba(232,185,58,0.15);
+  border:1px solid rgba(232,185,58,0.45);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700}
+.prec{display:flex;flex-direction:column;gap:6px;min-width:100px}
+.prec-t{font-size:9px;letter-spacing:2px;color:var(--gold);text-transform:uppercase;margin-bottom:4px}
+.prec-item{display:flex;align-items:center;gap:8px;padding:5px 12px;border-radius:8px;
+  border:1px solid rgba(232,185,58,0.2);background:rgba(232,185,58,0.05)}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- HEADER -->
+  <div class="hdr">
+    <div class="logo">
+      <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="22" fill="#001E5A"/>
+        <circle cx="22" cy="22" r="19" stroke="#E8B93A" stroke-width="1.5" fill="none"/>
+        <ellipse cx="22" cy="22" rx="12" ry="12" stroke="white" stroke-width="1.1" fill="none"/>
+        <line x1="22" y1="10" x2="22" y2="34" stroke="white" stroke-width="0.8"/>
+        <line x1="10" y1="22" x2="34" y2="22" stroke="white" stroke-width="0.8"/>
+        <line x1="13" y1="14" x2="31" y2="30" stroke="white" stroke-width="0.8"/>
+        <line x1="31" y1="14" x2="13" y2="30" stroke="white" stroke-width="0.8"/>
+        <path d="M22 12 C20 16 18 18 18 21 C18 25.5 19.5 27 22 28 C24.5 27 26 25.5 26 21 C26 18 24 16 22 12Z" fill="#E8B93A"/>
+        <path d="M22 16 C21 18.5 20 20 20 22 C20 24.5 20.8 25.5 22 26 C23.2 25.5 24 24.5 24 22 C24 20 23 18.5 22 16Z" fill="#fff5cc"/>
+      </svg>
+    </div>
+    <div class="org">
+      <h1>Puerta de Esperanza para las Naciones</h1>
+      <p>Bingo 75 — Ingreso Manual</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="s-in">0</div><div class="stat-l">Ingresadas</div></div>
+      <div class="stat"><div class="stat-n" id="s-left">75</div><div class="stat-l">Restantes</div></div>
+      <div class="tmr" id="tmr">00:00</div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- LEFT: últimas balotas -->
+    <div class="lpanel">
+      <div class="ptitle">Últimas balotas</div>
+      <div id="recent"></div>
+    </div>
+
+    <!-- CENTER -->
+    <div class="cpanel">
+      <div class="cpanel-top">
+        <!-- Bola actual -->
+        <div class="ball-area">
+          <div id="ball-disp"><div class="idle">Ingresa el número anunciado</div></div>
+          <div class="blbl" id="blbl"></div>
+        </div>
+
+        <!-- Entrada de número -->
+        <div class="entry-area">
+          <div class="hint" id="hint">Escribe el número y presiona Enter o Registrar</div>
+          <div class="inp-row">
+            <input id="ni" class="ni" type="number" min="1" max="75" placeholder="Nº" autocomplete="off"/>
+            <button class="breg" id="breg">✓ Registrar</button>
+          </div>
+          <div class="errmsg" id="errmsg"></div>
+
+          <div style="margin-top:8px">
+            <div class="ptitle">Selección rápida</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick grid full width -->
+      <div class="qgrid-wrap">
+        <div class="qgrid" id="qgrid"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: historial BINGO -->
+    <div class="rpanel">
+      <div class="ptitle">Historial B-I-N-G-O</div>
+      <div id="hist"></div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="ftr">
+    <button class="btn bundo" id="bundo">⬅ Deshacer</button>
+    <button class="btn bdanger" id="breset">🔄 Reiniciar</button>
+    <button class="btn bwin" id="bwin">🏆 GANADOR</button>
+    <div class="tgl-wrap">
+      <span class="tgl-lbl">🔊 Voz</span>
+      <div class="tgl" id="tvoz"></div>
+      <span class="tgl-lbl" style="margin-left:10px">📺 Proyectar</span>
+      <div class="tgl" id="tpres"></div>
+    </div>
+  </div>
+
+  <!-- Confirm reset modal -->
+  <div class="cmodal" id="cmodal" style="display:none">
+    <div class="cbox">
+      <p>¿Reiniciar el bingo?<br>Se borran todas las balotas ingresadas.</p>
+      <div class="cbtns">
+        <button class="btn bdanger" id="cyes">Sí, reiniciar</button>
+        <button class="btn bsec" id="cno">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Winner overlay -->
+  <div class="wov" id="wov" style="display:none">
+    <div class="wtxt">¡BINGO!</div>
+    <div class="wsub">¡TENEMOS GANADOR!</div>
+    <button class="btn bsec" style="margin-top:28px;font-size:14px" id="cwov">✕ Cerrar</button>
+  </div>
+
+  <!-- Projection overlay -->
+  <div class="pov" id="pov" style="display:none">
+    <div class="phdr">
+      <div class="logo">
+        <svg width="42" height="42" viewBox="0 0 44 44" fill="none">
+          <circle cx="22" cy="22" r="22" fill="#001E5A"/>
+          <circle cx="22" cy="22" r="19" stroke="#E8B93A" stroke-width="1.5" fill="none"/>
+          <ellipse cx="22" cy="22" rx="12" ry="12" stroke="white" stroke-width="1.1" fill="none"/>
+          <line x1="22" y1="10" x2="22" y2="34" stroke="white" stroke-width="0.8"/>
+          <line x1="10" y1="22" x2="34" y2="22" stroke="white" stroke-width="0.8"/>
+          <path d="M22 12 C20 16 18 18 18 21 C18 25.5 19.5 27 22 28 C24.5 27 26 25.5 26 21 C26 18 24 16 22 12Z" fill="#E8B93A"/>
+          <path d="M22 16 C21 18.5 20 20 20 22 C20 24.5 20.8 25.5 22 26 C23.2 25.5 24 24.5 24 22 C24 20 23 18.5 22 16Z" fill="#fff5cc"/>
+        </svg>
+      </div>
+      <div class="org" style="flex:1">
+        <h1>Puerta de Esperanza para las Naciones</h1>
+        <p>Bingo 75 — Formato Americano</p>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat-n" id="ps-in">0</div><div class="stat-l">Ingresadas</div></div>
+        <div class="stat"><div class="stat-n" id="ps-left">75</div><div class="stat-l">Restantes</div></div>
+        <div class="tmr" id="ptmr">00:00</div>
+      </div>
+    </div>
+    <div class="pcenter">
+      <div class="prec" id="prec"></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+        <div id="pball-disp"><div class="idle" style="width:260px;height:260px;font-size:13px">Esperando balota...</div></div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:clamp(28px,4vw,46px);color:var(--gold);letter-spacing:8px" id="plbl"></div>
+      </div>
+    </div>
+    <div class="phistftr">
+      <div class="pcols" id="pcols"></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script>
+(function(){
+  const COLS={B:[1,15],I:[16,30],N:[31,45],G:[46,60],O:[61,75]};
+  const WORDS={1:'uno',2:'dos',3:'tres',4:'cuatro',5:'cinco',6:'seis',7:'siete',8:'ocho',9:'nueve',10:'diez',11:'once',12:'doce',13:'trece',14:'catorce',15:'quince',16:'dieciséis',17:'diecisiete',18:'dieciocho',19:'diecinueve',20:'veinte',21:'veintiuno',22:'veintidós',23:'veintitrés',24:'veinticuatro',25:'veinticinco',26:'veintiséis',27:'veintisiete',28:'veintiocho',29:'veintinueve',30:'treinta',40:'cuarenta',50:'cincuenta',60:'sesenta',70:'setenta',75:'setenta y cinco'};
+  function w(n){if(WORDS[n])return WORDS[n];const d=Math.floor(n/10)*10,u=n%10;return WORDS[d]+' y '+WORDS[u];}
+  function gl(n){for(const[l,[a,b]] of Object.entries(COLS))if(n>=a&&n<=b)return l;return'?';}
+
+  let drawn=[],hist={B:[],I:[],N:[],G:[],O:[]};
+  let voiceOn=false,presMode=false,timerStart=null,timerInt=null,wtimer=null;
+
+  function elapsed(){return timerStart?Math.floor((Date.now()-timerStart)/1000):0;}
+  function startTimer(){if(timerInt)return;timerStart=Date.now();timerInt=setInterval(tick,1000);}
+  function tick(){
+    const s=elapsed(),m=Math.floor(s/60),sec=s%60;
+    const t=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    document.getElementById('tmr').textContent=t;
+    const pt=document.getElementById('ptmr');if(pt)pt.textContent=t;
+  }
+  function speak(l,n){
+    if(!voiceOn||!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance('Letra '+l+', '+w(n));
+    u.lang='es-ES';u.rate=0.88;window.speechSynthesis.speak(u);
+  }
+  function save(){try{localStorage.setItem('pden_b',JSON.stringify({drawn,elapsed:elapsed()}));}catch(e){}}
+
+  function renderBall(l,n,lg){
+    const s=lg?'pball':'ball',ls=lg?'pbl':'bl',ns=lg?'pbn':'bn';
+    return'<div class="'+s+'"><span class="'+ls+'">'+l+'</span><span class="'+ns+'">'+n+'</span></div>';
+  }
+
+  function refreshDisplay(){
+    const last=drawn[drawn.length-1];
+    const bd=document.getElementById('ball-disp');
+    const pbd=document.getElementById('pball-disp');
+    const lbl=document.getElementById('blbl');
+    const plbl=document.getElementById('plbl');
+    if(!last){
+      bd.innerHTML='<div class="idle">Ingresa el número anunciado</div>';
+      if(pbd)pbd.innerHTML='<div class="idle" style="width:260px;height:260px;font-size:13px">Esperando balota...</div>';
+      if(lbl)lbl.textContent='';
+      if(plbl)plbl.textContent='';
+      return;
+    }
+    const l=gl(last);
+    bd.innerHTML=renderBall(l,last,false);
+    if(pbd)pbd.innerHTML=renderBall(l,last,true);
+    if(lbl)lbl.textContent=l+' — '+last;
+    if(plbl)plbl.textContent=l+' — '+last;
+  }
+
+  function refreshStats(){
+    document.getElementById('s-in').textContent=drawn.length;
+    document.getElementById('s-left').textContent=75-drawn.length;
+    const pi=document.getElementById('ps-in'),pl=document.getElementById('ps-left');
+    if(pi)pi.textContent=drawn.length;
+    if(pl)pl.textContent=75-drawn.length;
+  }
+
+  function refreshRecent(){
+    const rb=document.getElementById('recent');
+    rb.innerHTML=[...drawn].reverse().slice(0,12).map((n,i)=>{
+      const l=gl(n);
+      return'<div class="rball" style="'+(i===0?'border-color:rgba(232,185,58,0.6)':'')+'"><span class="rl">'+l+'</span><span class="rn">'+n+'</span></div>';
+    }).join('');
+    const pr=document.getElementById('prec');
+    if(pr){
+      const r=[...drawn].reverse().slice(0,5);
+      pr.innerHTML='<div class="prec-t">Anteriores</div>'+r.map((n,i)=>{
+        const l=gl(n);
+        return'<div class="prec-item" style="opacity:'+(i===0?'0.9':Math.max(0.2,0.7-i*0.15))+'"><span class="rl">'+l+'</span><span class="rn" style="font-size:20px;font-weight:900">'+n+'</span></div>';
+      }).join('');
+    }
+  }
+
+  function refreshHist(){
+    const hc=document.getElementById('hist');
+    const pc=document.getElementById('pcols');
+    let h='',p='';
+    for(const l of['B','I','N','G','O']){
+      const nums=[...hist[l]].sort((a,b)=>a-b);
+      h+='<div class="hcol"><div class="hltr">'+l+'</div><div class="hnums">'+nums.map(n=>'<div class="hnum">'+n+'</div>').join('')+'</div></div>';
+      p+='<div><div class="pch">'+l+'</div><div class="pcnums">'+nums.map(n=>'<div class="pcnum">'+n+'</div>').join('')+'</div></div>';
+    }
+    hc.innerHTML=h;
+    if(pc)pc.innerHTML=p;
+  }
+
+  function buildGrid(){
+    const qg=document.getElementById('qgrid');
+    qg.innerHTML='';
+    for(const[l,[min,max]] of Object.entries(COLS)){
+      for(let n=min;n<=max;n++){
+        const used=drawn.includes(n);
+        const btn=document.createElement('button');
+        btn.className='qb';
+        btn.innerHTML='<span class="qbl">'+l+'</span>'+n;
+        btn.disabled=used;
+        if(!used)btn.onclick=()=>register(n);
+        qg.appendChild(btn);
+      }
+    }
+  }
+
+  function updateHint(val){
+    const h=document.getElementById('hint');
+    const n=parseInt(val);
+    if(!val||isNaN(n)){h.textContent='Escribe el número y presiona Enter o Registrar';return;}
+    if(n>=1&&n<=75)h.textContent='Letra '+gl(n)+' — '+n;
+    else h.textContent='Número fuera de rango (1–75)';
+  }
+
+  function register(n){
+    const err=document.getElementById('errmsg');
+    if(isNaN(n)||n<1||n>75){err.textContent='⚠ Número entre 1 y 75';return false;}
+    if(drawn.includes(n)){err.textContent='⚠ La balota '+n+' ya fue ingresada';return false;}
+    err.textContent='';
+    const l=gl(n);
+    drawn.push(n);
+    hist[l].push(n);
+    startTimer();
+    refreshDisplay();refreshStats();refreshRecent();refreshHist();buildGrid();
+    speak(l,n);
+    save();
+    return true;
+  }
+
+  function undo(){
+    if(!drawn.length)return;
+    const last=drawn.pop();
+    const l=gl(last);
+    hist[l]=hist[l].filter(x=>x!==last);
+    refreshDisplay();refreshStats();refreshRecent();refreshHist();buildGrid();
+    save();
+  }
+
+  function reset(){
+    if(timerInt){clearInterval(timerInt);timerInt=null;timerStart=null;}
+    drawn=[];hist={B:[],I:[],N:[],G:[],O:[]};
+    document.getElementById('tmr').textContent='00:00';
+    const pt=document.getElementById('ptmr');if(pt)pt.textContent='00:00';
+    refreshDisplay();refreshStats();refreshRecent();refreshHist();buildGrid();
+    try{localStorage.removeItem('pden_b');}catch(e){}
+  }
+
+  function winner(){
+    document.getElementById('wov').style.display='flex';
+    if(window.confetti){
+      const end=Date.now()+8000;
+      (function f(){
+        confetti({particleCount:7,angle:60,spread:80,origin:{x:0},colors:['#E8B93A','#fff','#001E5A']});
+        confetti({particleCount:7,angle:120,spread:80,origin:{x:1},colors:['#E8B93A','#fff','#001E5A']});
+        if(Date.now()<end)requestAnimationFrame(f);
+      })();
+    }
+    if(wtimer)clearTimeout(wtimer);
+    wtimer=setTimeout(()=>{document.getElementById('wov').style.display='none';},8000);
+  }
+
+  function toggleVoice(){
+    voiceOn=!voiceOn;
+    document.getElementById('tvoz').classList.toggle('on',voiceOn);
+  }
+
+  function togglePres(){
+    presMode=!presMode;
+    document.getElementById('tpres').classList.toggle('on',presMode);
+    document.getElementById('pov').style.display=presMode?'flex':'none';
+    if(presMode){refreshDisplay();refreshHist();refreshStats();refreshRecent();}
+  }
+
+  document.getElementById('ni').addEventListener('input',function(){updateHint(this.value);});
+  document.getElementById('ni').addEventListener('keydown',function(e){
+    if(e.key==='Enter'){
+      const n=parseInt(this.value);
+      if(register(n)){this.value='';document.getElementById('hint').textContent='Escribe el número y presiona Enter o Registrar';}
+    }
+  });
+  document.getElementById('breg').addEventListener('click',function(){
+    const ni=document.getElementById('ni');
+    const n=parseInt(ni.value);
+    if(register(n)){ni.value='';document.getElementById('hint').textContent='Escribe el número y presiona Enter o Registrar';ni.focus();}
+  });
+  document.getElementById('bundo').addEventListener('click',undo);
+  document.getElementById('breset').addEventListener('click',()=>{document.getElementById('cmodal').style.display='flex';});
+  document.getElementById('cyes').addEventListener('click',()=>{document.getElementById('cmodal').style.display='none';reset();});
+  document.getElementById('cno').addEventListener('click',()=>{document.getElementById('cmodal').style.display='none';});
+  document.getElementById('bwin').addEventListener('click',winner);
+  document.getElementById('cwov').addEventListener('click',()=>{document.getElementById('wov').style.display='none';});
+  document.getElementById('tvoz').addEventListener('click',toggleVoice);
+  document.getElementById('tpres').addEventListener('click',togglePres);
+
+  document.addEventListener('keydown',function(e){
+    if(e.target===document.getElementById('ni'))return;
+    if(e.ctrlKey&&e.code==='KeyZ'){e.preventDefault();undo();}
+    if(e.code==='KeyG'&&!e.ctrlKey)winner();
+    if(e.code==='KeyP'&&!e.ctrlKey)togglePres();
+    if(e.code==='KeyV'&&!e.ctrlKey)toggleVoice();
+    if(e.code==='KeyF'){try{document.documentElement.requestFullscreen();}catch(err){}}
+  });
+
+  try{
+    const saved=JSON.parse(localStorage.getItem('pden_b')||'null');
+    if(saved&&saved.drawn&&saved.drawn.length>0){
+      saved.drawn.forEach(n=>{const l=gl(n);drawn.push(n);hist[l].push(n);});
+      timerStart=Date.now()-(saved.elapsed||0)*1000;
+      startTimer();
+    }
+  }catch(e){}
+
+  buildGrid();
+  refreshDisplay();refreshStats();refreshRecent();refreshHist();
+  document.getElementById('ni').focus();
+})();
+</script>
+</body>
+</html>
